@@ -503,6 +503,7 @@
             weeksData.forEach(week => {
                 week.forEach(day => {
                     const [d, m] = day.date.split('.');
+                    // Assuming the year is 2024 for all dates in weeksData
                     day.dateObj = new Date(2024, m - 1, d);
                 });
                 allDaysFlat = allDaysFlat.concat(week);
@@ -610,6 +611,10 @@
                 const week = weeks[weekIndex];
                 calendarGrid.innerHTML = '';
 
+                // Get today's date, normalized to midnight for comparison
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+
                 week.forEach(day => {
                     const dayId = day.date;
                     const isDone = doneDays[dayId] && doneDays[dayId].completed;
@@ -618,8 +623,11 @@
 
                     const proceduresHtml = proceduresToDisplay.map(proc => `<li class="text-sm">${proc}</li>`).join(''); 
                     
+                    // Check if the day is in the future
+                    const isFutureDay = day.dateObj.getTime() > today.getTime();
+
                     const card = `
-                        <div class="day-card bg-amber-50/50 border border-amber-200 rounded-xl p-4 flex flex-col h-full transition-shadow hover:shadow-md cursor-pointer ${isDone ? 'done' : ''}" data-date="${dayId}" style="min-height: 120px;">
+                        <div class="day-card bg-amber-50/50 border border-amber-200 rounded-xl p-4 flex flex-col h-full transition-shadow hover:shadow-md cursor-pointer ${isDone ? 'done' : ''} ${isFutureDay ? 'opacity-50 cursor-not-allowed' : ''}" data-date="${dayId}" style="min-height: 120px;">
                             <div class="flex justify-between items-baseline mb-2">
                                 <p class="font-bold text-lg text-gray-800">${day.date}</p>
                                 <p class="font-medium text-gray-500">${weekDays[(day.dateObj.getDay() === 0) ? 6 : day.dateObj.getDay() - 1]}</p>
@@ -636,6 +644,16 @@
                     card.addEventListener('click', function() {
                         const date = this.dataset.date;
                         const dayData = allDaysFlat.find(d => d.date === date);
+
+                        // Get today's date for comparison
+                        const todayForClick = new Date();
+                        todayForClick.setHours(0, 0, 0, 0);
+
+                        // Check if the clicked day is in the future
+                        if (dayData.dateObj.getTime() > todayForClick.getTime()) {
+                            showNotification("Ты не можешь отмечать дни, которые еще не наступили!");
+                            return; // Stop execution if it's a future date
+                        }
 
                         const isDone = doneDays[date] && doneDays[date].completed;
                         
@@ -721,6 +739,7 @@
 
 
                 allDaysFlat.forEach(day => {
+                    // Only count procedures for days that are marked as done
                     if (doneDays[day.date] && doneDays[day.date].completed && doneDays[day.date].actualProcedures) {
                         doneDays[day.date].actualProcedures.forEach(proc => {
                             if (proc.includes("Шампунь DUCRAY KELUAL DS")) procedureCounts["🧴"]++;
@@ -853,4 +872,3 @@
     </script>
 </body>
 </html>
-
