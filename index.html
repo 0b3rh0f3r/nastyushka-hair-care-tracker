@@ -298,6 +298,7 @@
     </div>
 
     <script>
+        // Function to show a modal
         function showModal(modalId, title, content) {
             const modal = document.getElementById(modalId);
             const modalTitleElement = modal.querySelector('#modal-title');
@@ -312,10 +313,12 @@
             modal.classList.remove('hidden');
         }
 
+        // Function to hide a modal
         function hideModal(modalId) {
             document.getElementById(modalId).classList.add('hidden');
         }
 
+        // Function to show a reward notification
         function showRewardNotification() {
             const rewardNotification = document.getElementById('reward-notification');
             rewardNotification.classList.add('show');
@@ -325,6 +328,7 @@
         }
 
         document.addEventListener('DOMContentLoaded', function () {
+            // Define weeks data
             const weeksData = [
                 // Week 1
                 [ { date: "13.06", procedures: ["🧽 Пилинг", "🧴 Шампунь DUCRAY KELUAL DS", "❄️ Тоник"] },
@@ -399,6 +403,7 @@
                 { date: "13.08", procedures: ["🧽 Пилинг", "🧴 Шампунь DUCRAY KELUAL DS", "❄️ Тоник"] } ]
             ];
 
+            // Product descriptions for modal
             const productDescriptions = {
                 "Шампунь DUCRAY KELUAL DS": `
                     Этот шампунь содержит несколько ключевых компонентов, которые активно борются с причиной перхоти и её неприятными симптомами. 
@@ -477,6 +482,7 @@
                 `
             };
 
+            // Full product titles for chart tooltips
             const fullProductTitles = {
                 "🧴": "Шампунь DUCRAY KELUAL DS",
                 "💧": "Сыворотка Compliment PROFESSIONAL SCALP EXPERT LINE",
@@ -485,6 +491,7 @@
                 "🌟": "Твой шампунь"
             };
 
+            // Function to show a notification
             function showNotification(message, duration = 3000) {
                 const notificationMessage = document.getElementById('notification-message');
                 const notificationText = document.getElementById('notification-text');
@@ -516,6 +523,7 @@
             const resetButton = document.getElementById('reset-button'); 
             const totalDoneDaysDisplay = document.getElementById('total-done-days-display'); 
 
+            // Load doneDays from localStorage
             let doneDays = JSON.parse(localStorage.getItem('hairCareTrackerDoneDays') || '{}');
             let myProceduresChart = null; 
 
@@ -525,6 +533,7 @@
             const showSchedulePageBtn = document.getElementById('show-schedule-page');
             const confirmInfoButton = document.getElementById('confirm-info-button');
 
+            // Function to show the correct page (info or schedule)
             function showPage(pageId) {
                 if (pageId === 'info') {
                     infoPage.classList.remove('hidden');
@@ -533,10 +542,14 @@
                     infoPage.classList.add('hidden');
                     schedulePage.classList.remove('hidden');
                 }
+                // Save the active page to localStorage
+                localStorage.setItem('activePage', pageId);
             }
 
+            // Event listeners for page navigation buttons
             showInfoPageBtn.addEventListener('click', () => showPage('info'));
             showSchedulePageBtn.addEventListener('click', () => {
+                // Only allow switching to schedule page if info is confirmed
                 if (!showSchedulePageBtn.disabled) {
                     showPage('schedule');
                 } else {
@@ -544,23 +557,42 @@
                 }
             });
 
-            showPage('info');
-            showSchedulePageBtn.disabled = true;
+            // Check if info was already confirmed from localStorage
+            const infoConfirmed = localStorage.getItem('infoConfirmed');
+            if (infoConfirmed === 'true') {
+                // If confirmed, disable the confirm button and enable schedule button
+                confirmInfoButton.disabled = true;
+                showSchedulePageBtn.disabled = false;
+                showInfoPageBtn.disabled = false; // Enable info button if schedule is enabled
+                // Show the last active page or schedule if none saved
+                const lastActivePage = localStorage.getItem('activePage') || 'schedule';
+                showPage(lastActivePage);
+            } else {
+                // If not confirmed, show info page by default and disable schedule
+                showPage('info');
+                showSchedulePageBtn.disabled = true;
+            }
 
+            // Event listener for confirming info
             confirmInfoButton.addEventListener('click', () => {
                 showPage('schedule');
                 showSchedulePageBtn.disabled = false;
                 showInfoPageBtn.disabled = false;
                 showNotification("Спасибо! Теперь ты можешь просматривать расписание.");
                 window.scrollTo(0, 0);
+                // Save info confirmation to localStorage
+                localStorage.setItem('infoConfirmed', 'true');
+                confirmInfoButton.disabled = true; // Disable after confirming
             });
 
+            // Function to save done days to localStorage and re-render chart/total display
             function saveDoneDays() {
                 localStorage.setItem('hairCareTrackerDoneDays', JSON.stringify(doneDays));
                 renderChart(); 
                 updateTotalDoneDaysDisplay(); 
             }
 
+            // Event listeners for product description titles to show modals
             document.querySelectorAll('#product-descriptions-container li .product-title').forEach(titleElement => {
                 titleElement.addEventListener('click', function() {
                     const productKey = this.closest('li').dataset.productKey;
@@ -570,7 +602,7 @@
                 });
             });
 
-            // Added event listener to close modal on outside click for procedure-modal
+            // Event listener to close procedure modal on outside click
             const procedureModal = document.getElementById('procedure-modal');
             procedureModal.addEventListener('click', function(event) {
                 if (event.target === procedureModal) {
@@ -578,6 +610,7 @@
                 }
             });
             
+            // Function to check if previous days are marked as done
             function arePreviousDaysDone(currentDate) {
                 const clickedDayData = allDaysFlat.find(d => d.date === currentDate);
                 if (!clickedDayData) return true;
@@ -593,6 +626,7 @@
                 return true;
             }
 
+            // Function to render the calendar week
             function renderWeek(weekIndex) {
                 const week = weeks[weekIndex];
                 calendarGrid.innerHTML = '';
@@ -618,6 +652,7 @@
                     calendarGrid.innerHTML += card;
                 });
                 
+                // Add event listeners to day cards
                 document.querySelectorAll('.day-card[data-date]').forEach(card => {
                     card.addEventListener('click', function() {
                         const date = this.dataset.date;
@@ -662,13 +697,14 @@
                     });
                 });
 
-
+                // Update week title and navigation button states
                 weekTitle.textContent = `Неделя ${weekIndex + 1}`;
                 
                 prevButton.disabled = weekIndex === 0;
                 nextButton.disabled = weekIndex === weeks.length - 1;
             }
 
+            // Event listeners for week navigation buttons
             prevButton.addEventListener('click', () => {
                 if (currentWeekIndex > 0) {
                     currentWeekIndex--;
@@ -683,6 +719,7 @@
                 }
             });
 
+            // Function to update the display of total done days
             function updateTotalDoneDaysDisplay() {
                 let totalCompleted = 0;
                 allDaysFlat.forEach(day => {
@@ -693,6 +730,7 @@
                 totalDoneDaysDisplay.innerText = totalCompleted;
             }
 
+            // Function to render the procedures chart
             function renderChart() {
                 const procedureCounts = {};
                 const fullProductTitles = {
@@ -800,6 +838,7 @@
                 }
             }
 
+            // Event listener for reset button
             resetButton.addEventListener('click', () => {
                 localStorage.removeItem('hairCareTrackerDoneDays');
                 doneDays = {}; 
@@ -808,8 +847,15 @@
                 updateTotalDoneDaysDisplay(); 
                 renderWeek(currentWeekIndex); 
                 showNotification("Все отметки сброшены! ");
+                // Also reset info confirmation and active page
+                localStorage.removeItem('infoConfirmed');
+                localStorage.removeItem('activePage');
+                confirmInfoButton.disabled = false;
+                showSchedulePageBtn.disabled = true;
+                showPage('info');
             });
             
+            // Initial render calls
             renderWeek(currentWeekIndex);
             renderChart();
             updateTotalDoneDaysDisplay(); 
