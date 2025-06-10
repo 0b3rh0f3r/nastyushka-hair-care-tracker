@@ -168,7 +168,7 @@
                 <li><strong class="font-semibold">🚿 Мягкая вода:</strong> Если есть такая возможность, рассмотри использование фильтра для душа. Жесткая вода часто содержит минералы, которые могут усиливать сухость и раздражение кожи головы.</li>
                 <li><strong class="font-semibold">💇‍♀️ Осторожное расчесывание:</strong> Избегай травмирования кожи головы. Используй мягкие расчески с тупыми зубцами и старайся не царапать кожу.</li>
                 <li><strong class="font-semibold">🌡️ Избегай термического воздействия:</strong> Постарайся минимизировать использование фена, плоек и горячей воды. Высокие температуры могут дополнительно высушивать и раздражать кожу головы, усугубляя проблему.</li>
-                <li><strong class="font-semibold">🍎 Здоровый образ жизни:</strong> Состояние кожи тесно связано с общим здоровьем. Поддерживай сбалансированное питание, старайся управлять стрессом и обеспечь себе достаточный сон. Эти факторы могут значительно помочь в борьбе с перхотью.</li>
+                <li><strong class="font-semibold">� Здоровый образ жизни:</strong> Состояние кожи тесно связано с общим здоровьем. Поддерживай сбалансированное питание, старайся управлять стрессом и обеспечь себе достаточный сон. Эти факторы могут значительно помочь в борьбе с перхотью.</li>
                 <li><strong class="font-semibold">🍔 Продукты питания, которых следует избегать при перхоти:</strong> Некоторые продукты могут провоцировать или усугублять перхоть у некоторых людей. Попробуй ограничить или исключить из рациона:
                     <ul class="list-none ml-5 mt-2">
                         <li>Сахар и простые углеводы: Они могут способствовать росту дрожжеподобных грибков, которые часто являются причиной перхоти.</li>
@@ -515,7 +515,14 @@
             
             const weeks = weeksData; 
 
-            let currentWeekIndex = 0;
+            // Load doneDays from localStorage
+            let doneDays = JSON.parse(localStorage.getItem('hairCareTrackerDoneDays') || '{}');
+            console.log('Loaded doneDays:', doneDays);
+
+            // Load currentWeekIndex from localStorage
+            let currentWeekIndex = parseInt(localStorage.getItem('hairCareTrackerCurrentWeekIndex') || '0');
+            console.log('Loaded currentWeekIndex:', currentWeekIndex);
+
             const calendarGrid = document.getElementById('calendar-grid');
             const weekTitle = document.getElementById('week-title');
             const prevButton = document.getElementById('prev-week');
@@ -523,8 +530,6 @@
             const resetButton = document.getElementById('reset-button'); 
             const totalDoneDaysDisplay = document.getElementById('total-done-days-display'); 
 
-            // Load doneDays from localStorage
-            let doneDays = JSON.parse(localStorage.getItem('hairCareTrackerDoneDays') || '{}');
             let myProceduresChart = null; 
 
             const infoPage = document.getElementById('info-page');
@@ -544,6 +549,7 @@
                 }
                 // Save the active page to localStorage
                 localStorage.setItem('activePage', pageId);
+                console.log('Set activePage to:', pageId);
             }
 
             // Event listeners for page navigation buttons
@@ -559,6 +565,7 @@
 
             // Check if info was already confirmed from localStorage
             const infoConfirmed = localStorage.getItem('infoConfirmed');
+            console.log('Loaded infoConfirmed:', infoConfirmed);
             if (infoConfirmed === 'true') {
                 // If confirmed, disable the confirm button and enable schedule button
                 confirmInfoButton.disabled = true;
@@ -566,6 +573,7 @@
                 showInfoPageBtn.disabled = false; // Enable info button if schedule is enabled
                 // Show the last active page or schedule if none saved
                 const lastActivePage = localStorage.getItem('activePage') || 'schedule';
+                console.log('Loaded activePage:', lastActivePage);
                 showPage(lastActivePage);
             } else {
                 // If not confirmed, show info page by default and disable schedule
@@ -582,12 +590,14 @@
                 window.scrollTo(0, 0);
                 // Save info confirmation to localStorage
                 localStorage.setItem('infoConfirmed', 'true');
+                console.log('Set infoConfirmed to true');
                 confirmInfoButton.disabled = true; // Disable after confirming
             });
 
             // Function to save done days to localStorage and re-render chart/total display
             function saveDoneDays() {
                 localStorage.setItem('hairCareTrackerDoneDays', JSON.stringify(doneDays));
+                console.log('Saved doneDays:', doneDays);
                 renderChart(); 
                 updateTotalDoneDaysDisplay(); 
             }
@@ -708,6 +718,8 @@
             prevButton.addEventListener('click', () => {
                 if (currentWeekIndex > 0) {
                     currentWeekIndex--;
+                    localStorage.setItem('hairCareTrackerCurrentWeekIndex', currentWeekIndex); // Save current week index
+                    console.log('Set currentWeekIndex to:', currentWeekIndex);
                     renderWeek(currentWeekIndex);
                 }
             });
@@ -715,6 +727,8 @@
             nextButton.addEventListener('click', () => {
                 if (currentWeekIndex < weeks.length - 1) {
                     currentWeekIndex++;
+                    localStorage.setItem('hairCareTrackerCurrentWeekIndex', currentWeekIndex); // Save current week index
+                    console.log('Set currentWeekIndex to:', currentWeekIndex);
                     renderWeek(currentWeekIndex);
                 }
             });
@@ -733,14 +747,6 @@
             // Function to render the procedures chart
             function renderChart() {
                 const procedureCounts = {};
-                const fullProductTitles = {
-                    "🧴": "Шампунь DUCRAY KELUAL DS",
-                    "💧": "Сыворотка Compliment PROFESSIONAL SCALP EXPERT LINE",
-                    "❄️": "Тоник ARAVIA Professional Soothing Cool Spray",
-                    "🧽": "Пилинг Compliment PROFESSIONAL DETOX LINE",
-                    "🌟": "Твой шампунь"
-                };
-
                 const allChartableEmojis = ["🧴", "💧", "❄️", "🧽", "🌟"]; 
                 allChartableEmojis.forEach(emoji => procedureCounts[emoji] = 0);
 
@@ -841,8 +847,9 @@
             // Event listener for reset button
             resetButton.addEventListener('click', () => {
                 localStorage.removeItem('hairCareTrackerDoneDays');
+                localStorage.removeItem('hairCareTrackerCurrentWeekIndex'); // Remove current week index
                 doneDays = {}; 
-                currentWeekIndex = 0;
+                currentWeekIndex = 0; // Reset to 0
                 renderChart(); 
                 updateTotalDoneDaysDisplay(); 
                 renderWeek(currentWeekIndex); 
@@ -855,7 +862,7 @@
                 showPage('info');
             });
             
-            // Initial render calls
+            // Initial render calls, now using loaded currentWeekIndex
             renderWeek(currentWeekIndex);
             renderChart();
             updateTotalDoneDaysDisplay(); 
@@ -863,3 +870,4 @@
     </script>
 </body>
 </html>
+�
